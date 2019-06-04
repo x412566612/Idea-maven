@@ -1,5 +1,5 @@
 <application>
   <component name="ExternalResourceManagerImpl">
-    <resource url="http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd" location="$USER_HOME$/.IntelliJIdea2018.3/system/extResources/cf63db72_mybatis-generator-config_1_0.dtd" />
+    <ignored-resource url="E:\八维学习资料\dtd文件\mybatis-3-mapper.dtd" />
   </component>
 </application>
