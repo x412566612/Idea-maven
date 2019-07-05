@@ -1,0 +1,13 @@
+<templateSet group="java">
+  <template name="main" value="public static void main(String[] args){&#10;    $start$&#10;}" shortcut="ENTER" toReformat="false" toShortenFQNames="true">
+    <variable name="start" expression="" defaultValue="" alwaysStopAt="true" />
+    <context>
+      <option name="JAVA_CODE" value="true" />
+    </context>
+  </template>
+  <template name="syso" value="System.out.println();" shortcut="ENTER" toReformat="false" toShortenFQNames="true">
+    <context>
+      <option name="JAVA_CODE" value="true" />
+    </context>
+  </template>
+</templateSet>
