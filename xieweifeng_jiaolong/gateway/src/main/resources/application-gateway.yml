@@ -1,0 +1,18 @@
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: CONSULSERVER
+          uri: lb://CONSULSERVER
+          predicates:
+            - Path=/sso/auth/**
+            - Cookie=authcode, (.*)
+          filters:
+            - StripPrefix=2
+        - id: MYBITS
+          uri: lb://MYBITS
+          predicates:
+            - Path=/sso/mybits/**
+            - Cookie=authcode, (.*)
+          filters:
+            - StripPrefix=2

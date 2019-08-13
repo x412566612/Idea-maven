@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xieweifeng.dao.UserInfoDao">
+    <resultMap type="com.xieweifeng.entity.UserInfo" id="UserInfoMap">
+        <id property="id" column="id"/>
+        <result property="parentId" column="parentId"/>
+        <result property="userName" column="userName"/>
+        <result property="loginName" column="loginName"/>
+        <result property="password" column="password"/>
+        <result property="sex" column="sex"/>
+        <result property="tel" column="tel"/>
+        <result property="portrait" column="portrait"/>
+        <association property="roleInfo" javaType="com.xieweifeng.entity.RoleInfo" >
+            <id property="id" column="rid"/>
+            <result property="roleName" column="roleName"/>
+            <result property="miaoShu" column="miaoShu"/>
+        </association>
+    </resultMap>
+   <select id="findByNameAndDateAndSex" resultMap="UserInfoMap">
+       select
+              u.*,r.id rid,r.roleName,r.miaoShu
+        from base_user u
+        LEFT JOIN base_user_role ur on u.id = ur.userId
+        LEFT JOIN base_role r on r.id = ur.roleId
+       <where>
+           <if test="userName !=null">
+               u.userName LIKE CONCAT('%',#{userName},'%')
+           </if>
+           <if test="str !=null and end!=null">
+             and  u.createTime BETWEEN #{str} and #{end}
+           </if>
+           <if test="sex !=null">
+             and  sex in (${sex})
+           </if>
+       </where>
+   </select>
+
+    <select id="findUserInfoById" resultType="com.xieweifeng.entity.UserInfo">
+        select * from base_user where id =#{id}
+    </select>
+
+    <select id="findUserByRoleId" resultType="com.xieweifeng.entity.UserInfo">
+        select * from base_user u
+                          LEFT JOIN base_user_role ur on u.id =ur.userId
+        WHERE ur.roleId = #{id}
+    </select>
+
+    <select id="findUserInfoByLoginName" resultType="com.xieweifeng.entity.UserInfo">
+        select * from base_user where loginName = #{loginName}
+    </select>
+
+
+    <insert id="insertUserInfo" parameterType="com.xieweifeng.entity.UserInfo">
+        INSERT base_user(userName,loginName,password,sex,tel,createTime,portrait,parentId) VALUES(#{userName},#{loginName},#{password},#{sex},#{tel},#{createTime},#{portrait},#{parentId});
+    </insert>
+
+    <update id="updateUserInfo"  parameterType="com.xieweifeng.entity.UserInfo">
+        update base_user
+        <set>
+            <if test="userName!=null and userName!=''">
+                userName = #{userName},
+            </if>
+            <if test="loginName!=null and loginName!=''">
+                loginName = #{loginName},
+            </if>
+            <if test="password!=null and password!=''">
+                password = #{password},
+            </if>
+            <if test="sex!=null ">
+                sex = #{sex},
+            </if>
+            <if test="tel!=null and tel!=''">
+                tel = #{tel},
+            </if>
+            <if test="updateTime!=null">
+                updateTime = #{updateTime},
+            </if>
+            <if test="portrait!=null and portrait!=''">
+                portrait = #{portrait},
+            </if>
+            <if test="parentId!=null">
+                parentId = #{parentId},
+            </if>
+        </set>
+          where id = #{id}
+    </update>
+
+    <delete id="deleteUserInfo">
+        DELETE FROM base_user WHERE id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            ${id}
+        </foreach>
+    </delete>
+
+
+    <insert id="insertUserAndRoles">
+        insert base_user_role VALUES(null,#{roleId},#{userId})
+    </insert>
+    <delete id="deleteUserAndRoles">
+        delete from base_user_role where  userId = #{userId}
+    </delete>
+</mapper>

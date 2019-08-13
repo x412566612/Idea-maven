@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xieweifeng.dao.RoleInfoDao">
+
+    <resultMap type="com.xieweifeng.entity.RoleInfo" id="UserInfoMap">
+        <id property="id" column="id"/>
+        <result property="version" column="version"/>
+        <result property="roleName" column="roleName"/>
+        <result property="miaoShu" column="miaoShu"/>
+        <result property="createTime" column="createTime"/>
+        <result property="updateTime" column="updateTime"/>
+        <result property="users" column="users"/>
+        <collection property="menuInfoList"  ofType="com.xieweifeng.entity.MenuInfo" >
+            <id property="id" column="meid"/>
+            <result property="menuName" column="menuName"/>
+            <result property="url" column="url"/>
+            <result property="leval" column="leval"/>
+            <result property="parentId" column="parentId"/>
+        </collection>
+    </resultMap>
+
+
+
+   <select id="findByRoleAll" resultType="com.xieweifeng.entity.RoleInfo">
+       select * from base_role
+      <where>
+          <if test="query!=null">
+              roleName like  concat('%',#{query},'%')
+          </if>
+      </where>
+   </select>
+
+    <select id="findRoleByLikeNameAll" resultMap="UserInfoMap">
+        select DISTINCT r.*,u.users from base_role r
+        LEFT JOIN (
+        select r.id,GROUP_CONCAT(u.userName) users
+        from base_role r
+        LEFT JOIN base_user_role ur on r.id = ur.roleId
+        LEFT JOIN base_user  u ON u.id = ur.userId
+        GROUP BY r.id) u on u.id = r.id
+        <where>
+            <if test="roleName!=null">
+                r.roleName LIKE CONCAT('%',#{roleName},'%')
+            </if>
+        </where>
+    </select>
+
+
+
+    <insert id="insertRole" parameterType="com.xieweifeng.entity.RoleInfo">
+        insert base_role(id,roleName,miaoShu,createTime,version) VALUES(#{id},#{roleName},#{miaoShu},#{createTime},#{version})
+    </insert>
+
+    <insert id="insertRoleAndMenu" >
+        insert base_role_menu(id,roleId,menuId) VALUES
+        <foreach collection="menuIds" item="menuId" separator=",">
+            (null,#{roleId},#{menuId})
+        </foreach>
+    </insert>
+    <update id="updateRole" parameterType="com.xieweifeng.entity.RoleInfo">
+        UPDATE base_role
+        <set>
+            <if test="version!=null">
+                version = #{version},
+            </if>
+            <if test="roleName!=null">
+                roleName = #{roleName},
+            </if>
+            <if test="miaoShu!=null">
+                miaoShu = #{miaoShu},
+            </if>
+            <if test="updateTime!=null">
+                updateTime = #{updateTime},
+            </if>
+        </set>
+        WHERE id =#{id}
+    </update>
+
+    <delete id="deleteRole">
+        delete from base_role where id = #{roleId}
+    </delete>
+    <delete id="deleteRoleAndMenu">
+        delete from base_role_menu where roleId = #{roleId}
+    </delete>
+</mapper>
