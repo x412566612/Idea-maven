@@ -1,0 +1,8 @@
+fdfs:
+  so-timeout: 1501 #请求超时时间
+  connect-timeout: 601 #连接超时时间
+  thumb-image: # 缩略图 大小设置
+    width: 80
+    height: 80
+  tracker-list: # tracker地址
+    - 192.168.80.133:22122

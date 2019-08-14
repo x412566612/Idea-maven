@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xieweifeng.dao.MenuDao">
+   <select id="findMenuInfoByParentIdEquals" resultType="com.xieweifeng.entity.MenuInfo">
+       select * from base_menu where parentId = #{prentId}
+   </select>
+
+    <select id="findMenuByParentId" resultType="com.xieweifeng.entity.MenuInfo">
+        select * from base_menu where parentId in
+        <foreach collection="parentIds" item="parentId" open="(" separator="," close=")">
+            #{parentId}
+        </foreach>  #{prentId}
+        and leval = 4
+    </select>
+    <select id="findRoleByRoleid" resultType="com.xieweifeng.entity.MenuInfo">
+        SELECT m.* from base_menu m
+                            LEFT JOIN base_role_menu rm on m.id = rm.menuId
+        WHERE rm.roleId = #{id}
+    </select>
+
+
+    <insert id="insertMenu" parameterType="com.xieweifeng.entity.MenuInfo">
+        insert base_menu(id,version,menuName,url,leval,parentId,createTime) VALUES(#{id},#{version},#{menuName},#{url},#{leval},#{parentId},#{createTime})
+    </insert>
+
+    <update id="updateMenu" parameterType="com.xieweifeng.entity.MenuInfo">
+        update base_menu
+        <set>
+            <if test="version!=null">
+                version = #{version},
+            </if>
+            <if test="menuName!=null">
+                menuName = #{menuName},
+            </if>
+            <if test="url!=null">
+                url = #{url},
+            </if>
+            <if test="updateTime!=null">
+                updateTime = #{updateTime},
+            </if>
+        </set>
+          where id = #{id}
+    </update>
+
+    <delete id="deleteMenu" >
+        delete from base_menu where id = #{id}
+    </delete>
+    <delete id="deleteMenuByParentId" >
+        delete from base_menu where parentId = #{parentId}
+    </delete>
+</mapper>
