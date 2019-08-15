@@ -12,4 +12,7 @@ import java.util.Map;
 public interface UserService {
     public UserInfo login(String loginName) throws LoginException;
     public void findMenu(Long parentid, Map<String,String> map,Long roleId);
+
+    public UserInfo findUserTel(String tel) throws LoginException;
+    public String getAuthcode(String tel);
 }

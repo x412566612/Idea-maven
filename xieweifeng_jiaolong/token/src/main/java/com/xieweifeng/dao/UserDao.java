@@ -17,4 +17,5 @@ public interface UserDao  {
     public RoleInfo findByUserId(@Param("id") Long id);
     public List<MenuInfo> findMenuInfoByRoleId(@Param("prentid") Long prentid,@Param("roleID")  Long roleID);
 
+    public  UserInfo findUserTel(@Param("tel")String tel);
 }
