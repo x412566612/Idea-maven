@@ -9,8 +9,8 @@ import org.apache.ibatis.annotations.Param;
 import java.util.List;
 
 public interface MenuService {
+    public List<MenuInfo> findMenuInfoByParentIdAndRoleId(Long parentId,Long roleId);
     public List<MenuInfo> findAll(Long parentId);
-    public List<MenuInfo> findMenuBySan(Long parentId);
     public List<MenuInfo> findMenuByParentId(Long[] parentIds);
 
     public List<MenuInfo> findRoleByRoleid(Long id);

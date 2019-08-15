@@ -9,6 +9,7 @@ import com.xieweifeng.entity.Condition;
 import com.xieweifeng.entity.UserInfo;
 import org.apache.ibatis.annotations.Param;
 
+import java.io.IOException;
 import java.util.List;
 
 public interface UserInfoService {
@@ -18,7 +19,9 @@ public interface UserInfoService {
     public List<UserInfo> findUserByRoleId( Long id);
     public Integer insertUserInfo(UserInfo userInfo);
     public Integer updateUserInfo(UserInfo userInfo);
-    public Integer deleteUserInfo(Long[] ids);
+    public Integer deleteUserInfo(Long id,Integer status);
     public Integer insertUserAndRoles(Long userId,Long roleId);
+    public  void createExcel() throws IOException;
+
 
 }

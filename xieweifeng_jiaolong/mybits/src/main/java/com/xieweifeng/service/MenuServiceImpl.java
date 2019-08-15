@@ -18,10 +18,22 @@ import java.util.List;
 public class MenuServiceImpl implements MenuService {
     @Autowired
     private MenuDao menuDao;
+
+    @Override
+    @ApiOperation(value = "分层查询指定角色的菜单")
+    public List<MenuInfo> findMenuInfoByParentIdAndRoleId(Long parentId, Long roleId) {
+        List<MenuInfo> info = menuDao.findMenuInfoByParentIdAndRoleId(parentId,roleId);
+        info.forEach(m->{
+            List<MenuInfo> all = this.findMenuInfoByParentIdAndRoleId(m.getId(),roleId);
+            m.setMenuInfoList(all);
+        });
+        return info;
+    }
+
     @Override
     @ApiOperation(value = "通过父菜单递归,将所有菜单分层")
     public List<MenuInfo> findAll(Long parentId) {
-        List<MenuInfo> info = menuDao.findMenuInfoByParentIdEquals(parentId);
+        List<MenuInfo> info = menuDao.findMenuInfoAll(parentId);
         info.forEach(m->{
             List<MenuInfo> all = this.findAll(m.getId());
             m.setMenuInfoList(all);
@@ -29,19 +41,6 @@ public class MenuServiceImpl implements MenuService {
         return info;
     }
 
-    @Override
-    @ApiOperation(value = "通过父菜单递归,将所有菜单分层,不获取最后一级菜单,当循环到最后一级菜单时,结束循环")
-    public List<MenuInfo> findMenuBySan(Long parentId) {
-        List<MenuInfo> info = menuDao.findMenuInfoByParentIdEquals(parentId);
-        if(info.size()==0||info.get(0).getLeval()>3){
-            return null;
-        }
-        info.forEach(m->{
-                List<MenuInfo> all = this.findMenuBySan(m.getId());
-                m.setMenuInfoList(all);
-        });
-        return info;
-    }
 
     @Override
     @ApiOperation(value = "查询指定菜单的4级子菜单")
@@ -64,6 +63,7 @@ public class MenuServiceImpl implements MenuService {
         TwitterIdWorker twitterIdWorker = new TwitterIdWorker();
         menuInfo.setId(twitterIdWorker.nextId());
         menuInfo.setCreateTime(new Date());
+        menuInfo.setUpdateTime(new Date());
         menuInfo.setVersion(1L);
         Integer integer = menuDao.insertMenu(menuInfo);
         return integer;

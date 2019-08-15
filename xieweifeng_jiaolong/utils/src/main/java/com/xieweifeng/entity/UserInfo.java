@@ -37,6 +37,18 @@ public class UserInfo  extends BaseAuditable implements Serializable {
     private RoleInfo roleInfo;
     @ApiModelProperty(value = "角色名称")
     private String roleName;
+
+    //当月登录次数
+    private Object[] loginKeys;
+
+    private Object[] loginValues;
+    //当天登录次数
+    private String loginCount;
+
+    @ApiModelProperty(value = "状态码,判断对象是否被删除了",dataType = "Integer")
+    private Integer status;
+    @ApiModelProperty(value = "角色权限")
+    private Integer power;
     private String sexs;
     public void setSex(int sex) {
         this.sex = sex;

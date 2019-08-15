@@ -26,5 +26,9 @@ public class RoleInfo extends BaseAuditable  implements Serializable {
     @ApiModelProperty(value = "角色拥有的菜单")
     private List<MenuInfo> menuInfoList;
     @ApiModelProperty(value = "角色拥有的菜单ID")
-    private Integer[] menuIds;
+    private Long[] menuIds;
+    @ApiModelProperty(value = "父角色ID")
+    private Long parentId;
+    @ApiModelProperty(value = "角色等级")
+    private Integer leval;
 }

@@ -35,4 +35,6 @@ public abstract class BaseAuditable  implements Serializable {
     @Version
     @ApiModelProperty(value = "版本号",dataType = "Long")
     private Long version;
+
+
 }

@@ -31,6 +31,23 @@ public class RoleInfoServiceImpl implements RoleInfoService {
     }
 
     @Override
+    @ApiOperation("根据角色名称,查询所拥有的子角色")
+    public List<RoleInfo> findRoleByParentId(Long parentId,List<RoleInfo> infoList) {
+        List<RoleInfo> roleByParentId = roleInfoDao.findRoleByParentId(parentId);
+        roleByParentId.forEach(r->{
+            List<RoleInfo> role = this.findRoleByParentId(r.getId(),infoList);
+        });
+        infoList.addAll(roleByParentId);
+        return infoList;
+    }
+
+    @Override
+    public RoleInfo findRoleById(Long id) {
+        return roleInfoDao.findRoleById(id);
+    }
+
+
+    @Override
     @ApiOperation("根据角色名称,模糊查询角色信息,并关联查询角色绑定用户和权限")
     public PageInfo<RoleInfo> findRoleByLikeNameAll(String roleName, Integer pageNum, Integer pageSize) {
         PageHelper.startPage(pageNum,pageSize);
@@ -46,7 +63,9 @@ public class RoleInfoServiceImpl implements RoleInfoService {
         roleInfo.setVersion(1L);
         roleInfo.setId(twitterIdWorker.nextId());
         roleInfo.setCreateTime(new Date());
+        roleInfo.setUpdateTime(new Date());
         Integer integer = roleInfoDao.insertRole(roleInfo);
+        roleInfoDao.insertRoleAndMenu(roleInfo.getId(), roleInfo.getMenuIds());
         return integer;
     }
 
@@ -70,7 +89,7 @@ public class RoleInfoServiceImpl implements RoleInfoService {
 
     @Override
     @ApiOperation("给角色绑定菜单")
-    public Integer insertRoleAndMenu(Long roleId, Integer[] menuIds) {
+    public Integer insertRoleAndMenu(Long roleId, Long[] menuIds) {
         Integer integer = roleInfoDao.insertRoleAndMenu(roleId, menuIds);
         return integer;
     }
@@ -86,6 +105,15 @@ public class RoleInfoServiceImpl implements RoleInfoService {
         if(redisTemplate.hasKey("USERDATAAUTH" + roleId)){
             redisTemplate.delete("USERDATAAUTH" + roleId);
         }
+        return integer;
+    }
+
+    @Override
+    public Integer clearRoleCorrelationAll(Long id) {
+
+       Integer integer =  roleInfoDao.clearRoleCorrelationUser(id);
+
+       Integer integer1 =  roleInfoDao.clearRoleCorrelationMenu(id);
         return integer;
     }
 

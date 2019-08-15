@@ -9,6 +9,8 @@
         <result property="miaoShu" column="miaoShu"/>
         <result property="createTime" column="createTime"/>
         <result property="updateTime" column="updateTime"/>
+        <result property="parentId" column="parentId"/>
+        <result property="leval" column="leval"/>
         <result property="users" column="users"/>
         <collection property="menuInfoList"  ofType="com.xieweifeng.entity.MenuInfo" >
             <id property="id" column="meid"/>
@@ -28,7 +30,17 @@
               roleName like  concat('%',#{query},'%')
           </if>
       </where>
+       ORDER BY id desc
    </select>
+
+    <select id="findRoleByParentId" resultType="com.xieweifeng.entity.RoleInfo">
+        SELECT * from base_role WHERE parentId = #{parentId}
+    </select>
+
+    <select id="findRoleById"  resultType="com.xieweifeng.entity.RoleInfo">
+        SELECT * from base_role WHERE id = #{id}
+    </select>
+
 
     <select id="findRoleByLikeNameAll" resultMap="UserInfoMap">
         select DISTINCT r.*,u.users from base_role r
@@ -43,12 +55,13 @@
                 r.roleName LIKE CONCAT('%',#{roleName},'%')
             </if>
         </where>
+        ORDER BY r.id desc
     </select>
 
 
 
     <insert id="insertRole" parameterType="com.xieweifeng.entity.RoleInfo">
-        insert base_role(id,roleName,miaoShu,createTime,version) VALUES(#{id},#{roleName},#{miaoShu},#{createTime},#{version})
+        insert base_role(id,roleName,miaoShu,createTime,version,parentId,leval) VALUES(#{id},#{roleName},#{miaoShu},#{createTime},#{version},#{parentId},#{leval})
     </insert>
 
     <insert id="insertRoleAndMenu" >
@@ -72,6 +85,12 @@
             <if test="updateTime!=null">
                 updateTime = #{updateTime},
             </if>
+            <if test="parentId!=null">
+                parentId = #{parentId},
+            </if>
+            <if test="leval!=null">
+                leval = #{leval},
+            </if>
         </set>
         WHERE id =#{id}
     </update>
@@ -81,5 +100,13 @@
     </delete>
     <delete id="deleteRoleAndMenu">
         delete from base_role_menu where roleId = #{roleId}
+    </delete>
+
+    <delete id="clearRoleCorrelationMenu" >
+        DELETE from base_role_menu  WHERE roleId = #{id}
+    </delete>
+
+    <delete id="clearRoleCorrelationUser" >
+        DELETE from base_user_role WHERE roleId =  #{id}
     </delete>
 </mapper>

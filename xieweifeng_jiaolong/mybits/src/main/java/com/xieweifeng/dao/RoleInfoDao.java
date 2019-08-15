@@ -13,16 +13,22 @@ import java.util.List;
 public interface RoleInfoDao {
     public List<RoleInfo> findByRoleAll(@Param("query") String query);
 
-    public List<RoleInfo> findRoleByLikeNameAll(@Param("roleName") String roleName );
+    public List<RoleInfo> findRoleByLikeNameAll(@Param("roleName") String roleName);
 
+    public List<RoleInfo> findRoleByParentId(@Param("parentId") Long parentId);
 
+    public RoleInfo findRoleById(@Param("id") Long id);
     public Integer insertRole(RoleInfo roleInfo);
 
     public Integer updateRole(RoleInfo roleInfo);
 
-    public Integer insertRoleAndMenu(@Param("roleId") Long roleId,@Param("menuIds") Integer[] menuIds);
+    public Integer insertRoleAndMenu(@Param("roleId") Long roleId,@Param("menuIds") Long[] menuIds);
 
     public Integer deleteRole(@Param("roleId") Long roleId);
 
     public Integer deleteRoleAndMenu(@Param("roleId") Long roleId);
+
+    public Integer clearRoleCorrelationUser(@Param("id")Long id);
+
+    public Integer clearRoleCorrelationMenu(@Param("id")Long id);
 }

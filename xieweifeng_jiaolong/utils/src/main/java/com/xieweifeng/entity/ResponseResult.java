@@ -4,6 +4,7 @@ import io.swagger.annotations.ApiModel;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.Map;
 
 /**
  * 作者：LCG
@@ -33,6 +34,7 @@ public class ResponseResult   implements Serializable {
 
     //选中的需要回显的菜单ID
     private Long[] menuIds;
+
 
 
 }

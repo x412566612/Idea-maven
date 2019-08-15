@@ -44,7 +44,8 @@ public class MyGlobalFilter implements GlobalFilter {
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
        ServerHttpRequest request = exchange.getRequest();
         ServerHttpResponse response = exchange.getResponse();
-        String uri = request.getURI().toString();//获取拦截到的请求
+        String uri = request.getURI().toString();//获取拦截到 求
+        uri = uri.substring(23);
         List<String> list = Arrays.asList(urls);//取得自动放行的地址
         if(list.contains(uri)){//判断请求是否自动放行
             return chain.filter(exchange);
@@ -76,5 +77,6 @@ public class MyGlobalFilter implements GlobalFilter {
             }
 
         }
+       /* return chain.filter(exchange);*/
     }
 }

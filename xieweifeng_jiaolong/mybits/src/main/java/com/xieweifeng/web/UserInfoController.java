@@ -7,21 +7,24 @@ import com.github.pagehelper.PageInfo;
 import com.github.tobato.fastdfs.domain.fdfs.StorePath;
 import com.github.tobato.fastdfs.domain.fdfs.ThumbImageConfig;
 import com.github.tobato.fastdfs.service.FastFileStorageClient;
+import com.xieweifeng.dao.UserInfoDao;
 import com.xieweifeng.entity.Condition;
 import com.xieweifeng.entity.ResponseResult;
 import com.xieweifeng.entity.UserInfo;
 import com.xieweifeng.service.UserInfoService;
 import com.xieweifeng.utils.MD5;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.models.auth.In;
+import org.apache.poi.hssf.usermodel.*;
+import org.apache.poi.hssf.util.HSSFColor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import javax.swing.filechooser.FileSystemView;
+import java.io.*;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -40,6 +43,10 @@ public class UserInfoController {
 
     @RequestMapping("findByUserInfo")
     @ApiOperation(value = "对用户进行查询,条件用户名的模糊查询,创建时间的区间查询和性别的查询")
+    @ApiImplicitParam(
+            name = "condition",
+            value = "将传入的参数封装成一个自定义条件类"
+    )
     public ResponseResult findByNameAndDateAndSex(@RequestBody Condition condition){
         //condition,自定义查询的条件类
         ResponseResult responseResult = new ResponseResult();
@@ -52,6 +59,10 @@ public class UserInfoController {
     @CrossOrigin
     @RequestMapping("savePortrait")
     @ApiOperation(value = "上传图片")
+    @ApiImplicitParam(
+            name = "file",
+            value = "前端提交的图片文件"
+    )
     public void savePortrait(@RequestParam("file") MultipartFile file) throws IOException {
         if(file!=null){
             file.transferTo(new File("D:\\Eclipse-img\\"+file.getOriginalFilename()));
@@ -87,6 +98,10 @@ public class UserInfoController {
     @CrossOrigin
     @RequestMapping("deletePortrait")
     @ApiOperation(value = "删除,除默认图片之外的图片")
+    @ApiImplicitParam(
+            name = "file",
+            value = "根据文件名称,删除指定图片"
+    )
     public void deletePortrait(String file) throws IOException {
 
         if(!file.equals("timg (10).jpg")&&!file.equals("timg (1).jpg")){
@@ -101,14 +116,13 @@ public class UserInfoController {
     }
     @RequestMapping("insertUserInfo")
     @ApiOperation(value = "添加一个用户")
+    @ApiImplicitParam(
+            name = "userInfo",
+            value = "传入一个用户对象,用于进行添加操作"
+    )
     public ResponseResult insertUserInfo(@RequestBody UserInfo userInfo){
         ResponseResult responseResult = new ResponseResult();
-        //使用MD5对用户密码进行加密,salt是加密条件,为预防解密
-        String lcg = MD5.encryptPassword(userInfo.getPassword(), "lcg");
-        //将加密后的密码存入用户对象
-        userInfo.setPassword(lcg);
-        //设置创建时间
-        userInfo.setCreateTime(new Date());
+
         Integer integer = userInfoService.insertUserInfo(userInfo);
         responseResult.setResult(integer);
         responseResult.setCode(200);
@@ -117,12 +131,12 @@ public class UserInfoController {
     }
     @RequestMapping("updateUserInfo")
     @ApiOperation(value = "修改一个用户")
+    @ApiImplicitParam(
+            name = "userInfo",
+            value = "传入一个用户对象,用于进行修改操作"
+    )
     public ResponseResult updateUserInfo(@RequestBody UserInfo userInfo){
-        //使用MD5对用户密码进行加密,salt是加密条件,为预防解密
-        String lcg = MD5.encryptPassword(userInfo.getPassword(), "lcg");
-        userInfo.setPassword(lcg);
-        //设置修改时间
-        userInfo.setUpdateTime(new Date());
+
         Integer integer = userInfoService.updateUserInfo(userInfo);
         ResponseResult responseResult = new ResponseResult();
         responseResult.setResult(integer);
@@ -131,18 +145,29 @@ public class UserInfoController {
         return responseResult;
     }
     @RequestMapping("deleteUserInfo")
-    @ApiOperation(value = "删除用户")
-    public ResponseResult deleteUserInfo(@RequestBody Long[] ids){
-        Integer integer = userInfoService.deleteUserInfo(ids);
+    @ApiOperation(value = "逻辑删除或恢复用户")
+    @ApiImplicitParam(
+            name = "map",
+            value = "将传入的参数封装成一个map集合,里面必须携带一个名称为id的Long参数和一个名称为status的Integer参数"
+    )
+    public ResponseResult deleteUserInfo(@RequestBody Map map){
+        Long id =Long.valueOf(map.get("id").toString()) ;
+        Integer status = Integer.valueOf(map.get("status").toString());
+        Integer integer = userInfoService.deleteUserInfo(id,status);
         ResponseResult responseResult = new ResponseResult();
         responseResult.setResult(integer);
         responseResult.setCode(200);
-        responseResult.setSuccess("删除成功");
+        String s = status==1?"恢复":"删除";
+        responseResult.setSuccess(s+"成功");
         return responseResult;
     }
 
     @RequestMapping("insertUserAndRoles")
     @ApiOperation(value = "关联用户的角色")
+    @ApiImplicitParam(
+            name = "map",
+            value = "将传入的参数封装成一个map集合,里面必须携带一个名称为userId的Long参数和一个名称为roleId的Long参数"
+    )
     public ResponseResult insertUserAndRoles(@RequestBody Map<String,Long> map){
         Integer integer = userInfoService.insertUserAndRoles(map.get("userId"),map.get("roleId"));
         ResponseResult responseResult = new ResponseResult();
@@ -153,6 +178,10 @@ public class UserInfoController {
     }
     @RequestMapping("findUserInfoById")
     @ApiOperation(value = "根据ID查询用户")
+    @ApiImplicitParam(
+            name = "map",
+            value = "将传入的参数封装成一个map集合,里面必须携带一个名称为id的Long参数"
+    )
     public ResponseResult findUserInfoById(@RequestBody Map map){
         Long id = Long.valueOf(map.get("id").toString());
         ResponseResult responseResult = new ResponseResult();
@@ -165,6 +194,10 @@ public class UserInfoController {
 
     @RequestMapping("findUserByRoleId")
     @ApiOperation(value = "根据角色ID查询用户是否存在")
+    @ApiImplicitParam(
+            name = "map",
+            value = "将传入的参数封装成一个map集合,里面必须携带一个名称为id的Long参数"
+    )
     public ResponseResult findUserByRoleId(@RequestBody Map map){
         Long id = Long.valueOf(map.get("id").toString());
         ResponseResult responseResult = new ResponseResult();
@@ -181,6 +214,10 @@ public class UserInfoController {
 
     @RequestMapping("findUserInfoByLoginName")
     @ApiOperation(value = "查询登录名是否存在")
+    @ApiImplicitParam(
+            name = "map",
+            value = "将传入的参数封装成一个map集合,里面必须携带一个名称为loginName的字符串参数"
+    )
     public ResponseResult findUserInfoByLoginName(@RequestBody Map map){
         String loginName = map.get("loginName").toString();
         ResponseResult responseResult = new ResponseResult();
@@ -194,5 +231,11 @@ public class UserInfoController {
         }
 
         return responseResult;
+    }
+
+    @RequestMapping("createExcel")
+    @ApiOperation(value = "导出所有的用户")
+    public  void createExcel() throws IOException {
+        userInfoService.createExcel();
     }
 }
