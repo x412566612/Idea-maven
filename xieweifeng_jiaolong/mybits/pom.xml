@@ -12,6 +12,11 @@
     <artifactId>mybits</artifactId>
 
     <dependencies>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi</artifactId>
+            <version>3.8</version>
+        </dependency>
         <!--fastdfs-client依赖-->
         <dependency>
             <groupId>com.github.tobato</groupId>

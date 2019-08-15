@@ -21,6 +21,7 @@ import io.swagger.annotations.ApiModelProperty;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -30,8 +31,8 @@ import javax.annotation.Resource;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.List;
-import java.util.Map;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @RestController
@@ -39,7 +40,7 @@ import java.util.concurrent.TimeUnit;
 public class MyTokenController {
     @ApiModelProperty(value = "redis工具类")
     @Resource
-    private RedisTemplate redisTemplate;
+    private StringRedisTemplate stringRedisTemplate;
 
     @Autowired
     private UserService userService;
@@ -60,16 +61,17 @@ public class MyTokenController {
         //使用工具类获得指定长度的随机字符串
         String uid ="UUID"+ UID.getUUID16();
         //将获得的两个字符串存入到redis中,用于在之后的登录中用于验证
-        redisTemplate.opsForValue().set(uid,code);
+        stringRedisTemplate.opsForValue().set(uid,code);
         //设置存入参数的过期时间,到时间后自动删除指定的key
-        redisTemplate.expire("code",60, TimeUnit.SECONDS);
+        stringRedisTemplate.expire(uid,60, TimeUnit.SECONDS);
 
+        System.out.println(uid);
         //根据随机生成的uuid,创建一个名称为authcode的cookie
         Cookie authcode = new Cookie("authcode", uid);
         //cookie作用的路径
         authcode.setPath("/");
         //cookie作用的域名
-        authcode.setDomain("localhost");
+        authcode.setDomain("127.0.0.1");
         //将cookie添加到响应中
         response.addCookie(authcode);
         //返回获得的code
@@ -80,12 +82,14 @@ public class MyTokenController {
     @RequestMapping("/login")
     public ResponseResult login(@RequestBody Map<String,Object> map) throws LoginException {
 
+
         ResponseResult responseResult = ResponseResult.getResponseResult();
         if(map==null){
             throw new LoginException("用户名或密码错误");
         }
+
         String code = map.get("code").toString();
-        String cookieKey = redisTemplate.opsForValue().get(map.get("cookieKey").toString()).toString();
+        String cookieKey = stringRedisTemplate.opsForValue().get(map.get("cookieKey").toString()).toString();
         if(!code.equals(cookieKey)){
             throw new LoginException("验证码已过期");
         }
@@ -95,23 +99,56 @@ public class MyTokenController {
         if(loginName==null){
             throw new LoginException("用户名或密码错误");
         }
+        Boolean checked = Boolean.valueOf(map.get("checked").toString());
+        Object token = map.get("token");
+        String s =null;
+        if(token!=null){
+            s = map.get("password").toString();
+        }else {
+            s = MD5.encryptPassword(map.get("password").toString(), "lcg");
+        }
 
-        String s = MD5.encryptPassword(map.get("password").toString(), "lcg");
         if(!s.equals(loginName.getPassword())){
             throw new LoginException("用户名或密码错误");
         }
         responseResult.setCode(200);
-        responseResult.setResult(loginName);
+
         String s1 = JSON.toJSONString(loginName);
         String s2 = JWTUtils.generateToken(s1);
 
         responseResult.setToken(s2);
-        redisTemplate.opsForValue().set("USER"+loginName.getId(),s2);
-        redisTemplate.expire("USER"+loginName.getId(),600,TimeUnit.SECONDS);
+
+        stringRedisTemplate.opsForValue().set("USER"+loginName.getId(),s2);
+        if(checked){
+            stringRedisTemplate.expire("USER"+loginName.getId(),7,TimeUnit.DAYS);
+        }else {
+            stringRedisTemplate.expire("USER"+loginName.getId(),600,TimeUnit.SECONDS);
+        }
 
         Map<String, String> authmap = loginName.getAuthmap();
-        redisTemplate.opsForHash().putAll("USERDATAAUTH"+loginName.getId(),authmap);
-        redisTemplate.expire("USERDATAAUTH"+loginName.getId(),600,TimeUnit.SECONDS);
+        stringRedisTemplate.opsForHash().putAll("USERDATAAUTH"+loginName.getId(),authmap);
+        if(checked){
+            stringRedisTemplate.expire("USERDATAAUTH"+loginName.getId(),7,TimeUnit.DAYS);
+        }else {
+            stringRedisTemplate.expire("USERDATAAUTH"+loginName.getId(),600,TimeUnit.SECONDS);
+        }
+
+        SimpleDateFormat simpleDateFormat1 = new SimpleDateFormat("yyyy-MM");
+        SimpleDateFormat simpleDateFormat2 = new SimpleDateFormat("yyyy-MM-dd");
+        String ym = simpleDateFormat1.format(new Date());
+        String ymd = simpleDateFormat2.format(new Date());
+        if(stringRedisTemplate.opsForHash().hasKey(ym,ymd)){
+            stringRedisTemplate.opsForHash().increment(ym,ymd,1);
+        }else {
+            stringRedisTemplate.opsForHash().put(ym,ymd,"1");
+        }
+
+        Object[] values =  stringRedisTemplate.opsForHash().values(ym).toArray();
+        Object[] keys =  stringRedisTemplate.opsForHash().keys(ym).toArray();
+        loginName.setLoginKeys(keys);
+        loginName.setLoginValues(values);
+        loginName.setLoginCount(stringRedisTemplate.opsForHash().get(ym,ymd).toString());
+        responseResult.setResult(loginName);
         return responseResult;
     }
 
@@ -121,11 +158,11 @@ public class MyTokenController {
         Object userId = map.get("userId");
         Boolean delete = null;
         Boolean delete1 = null;
-        if(redisTemplate.hasKey("USER" + userId.toString())){
-            delete = redisTemplate.delete("USER" + userId.toString());
+        if(stringRedisTemplate.hasKey("USER" + userId.toString())){
+            delete = stringRedisTemplate.delete("USER" + userId.toString());
         }
-       if(redisTemplate.hasKey("USERDATAAUTH" + userId.toString())){
-           delete1 = redisTemplate.delete("USERDATAAUTH" + userId.toString());
+       if(stringRedisTemplate.hasKey("USERDATAAUTH" + userId.toString())){
+           delete1 = stringRedisTemplate.delete("USERDATAAUTH" + userId.toString());
        }
         ResponseResult result = new ResponseResult();
 

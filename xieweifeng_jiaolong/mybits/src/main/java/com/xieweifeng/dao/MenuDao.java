@@ -12,8 +12,8 @@ import java.util.List;
 
 @Mapper
 public interface MenuDao {
-
-    public List<MenuInfo> findMenuInfoByParentIdEquals(@Param("prentId") Long prentId);
+    public List<MenuInfo> findMenuInfoByParentIdAndRoleId(@Param("parentId") Long parentId,@Param("roleId") Long roleId);
+    public List<MenuInfo> findMenuInfoAll(@Param("parentId") Long parentId);
     public List<MenuInfo> findRoleByRoleid(@Param("id")Long id);
 
     public List<MenuInfo> findMenuByParentId(@Param("parentIds")Long[] parentIds);

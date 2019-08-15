@@ -7,6 +7,9 @@
         <result property="userName" column="userName"/>
         <result property="loginName" column="loginName"/>
         <result property="password" column="password"/>
+        <result property="version" column="version"/>
+        <result property="roleName" column="rroleName"/>
+        <result property="status" column="status"/>
         <result property="sex" column="sex"/>
         <result property="tel" column="tel"/>
         <result property="portrait" column="portrait"/>
@@ -14,11 +17,14 @@
             <id property="id" column="rid"/>
             <result property="roleName" column="roleName"/>
             <result property="miaoShu" column="miaoShu"/>
+            <result property="parentId" column="rparentId"/>
+            <result property="leval" column="leval"/>
         </association>
     </resultMap>
    <select id="findByNameAndDateAndSex" resultMap="UserInfoMap">
        select
-              u.*,r.id rid,r.roleName,r.miaoShu
+              u.*,r.id rid,r.roleName,r.miaoShu,
+              r.roleName rroleName,r.parentId rparentId,r.leval
         from base_user u
         LEFT JOIN base_user_role ur on u.id = ur.userId
         LEFT JOIN base_role r on r.id = ur.roleId
@@ -32,9 +38,21 @@
            <if test="sex !=null">
              and  sex in (${sex})
            </if>
+           <if test="power ==0">
+               and  status = 1
+           </if>
        </where>
+       ORDER BY u.id desc
    </select>
 
+    <select id="findByUserInfoAll" resultType="com.xieweifeng.entity.UserInfo">
+        select
+            u.*,r.roleName roleName
+        from base_user u
+                 LEFT JOIN base_user_role ur on u.id = ur.userId
+                 LEFT JOIN base_role r on r.id = ur.roleId
+        ORDER BY u.id desc
+    </select>
     <select id="findUserInfoById" resultType="com.xieweifeng.entity.UserInfo">
         select * from base_user where id =#{id}
     </select>
@@ -43,10 +61,11 @@
         select * from base_user u
                           LEFT JOIN base_user_role ur on u.id =ur.userId
         WHERE ur.roleId = #{id}
+        ORDER BY u.id desc
     </select>
 
     <select id="findUserInfoByLoginName" resultType="com.xieweifeng.entity.UserInfo">
-        select * from base_user where loginName = #{loginName}
+        select * from base_user where loginName = #{loginName}  ORDER BY u.id desc
     </select>
 
 
@@ -85,13 +104,16 @@
           where id = #{id}
     </update>
 
-    <delete id="deleteUserInfo">
+    <!--<delete id="deleteUserInfo">
         DELETE FROM base_user WHERE id in
         <foreach collection="ids" item="id" open="(" separator="," close=")">
             ${id}
         </foreach>
-    </delete>
+    </delete>-->
 
+    <update id="deleteUserInfo">
+        update base_user set status = #{status} where id = #{id}
+    </update>
 
     <insert id="insertUserAndRoles">
         insert base_user_role VALUES(null,#{roleId},#{userId})

@@ -1,18 +1,41 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.xieweifeng.dao.UserDao">
-   <select id="findUserByLoginNameEquals" resultType="com.xieweifeng.entity.UserInfo">
-       select * from base_user where loginName = #{loginName}
+    <resultMap type="com.xieweifeng.entity.UserInfo" id="UserInfoMap">
+        <id property="id" column="id"/>
+        <result property="parentId" column="parentId"/>
+        <result property="userName" column="userName"/>
+        <result property="loginName" column="loginName"/>
+        <result property="password" column="password"/>
+        <result property="roleName" column="rroleName"/>
+        <result property="status" column="status"/>
+        <result property="sex" column="sex"/>
+        <result property="tel" column="tel"/>
+        <result property="portrait" column="portrait"/>
+        <association property="roleInfo" javaType="com.xieweifeng.entity.RoleInfo" >
+            <id property="id" column="rid"/>
+            <result property="roleName" column="roleName"/>
+            <result property="miaoShu" column="miaoShu"/>
+            <result property="parentId" column="rparentId"/>
+            <result property="leval" column="leval"/>
+        </association>
+    </resultMap>
+   <select id="findUserByLoginNameEquals" resultMap="UserInfoMap">
+       select u.*,r.id rid,r.roleName,r.miaoShu,r.parentId rparentId,r.leval
+       from base_user u
+         LEFT JOIN base_user_role ur on u.id = ur.userId
+         LEFT JOIN base_role r ON ur.roleId = r.id
+       where loginName = #{loginName} and status = 1
    </select>
 
     <select id="findByUserId" resultType="com.xieweifeng.entity.RoleInfo">
         select r.* from base_role r
-                            LEFT JOIN base_user_role ur on r.id = ur.roleId
+          LEFT JOIN base_user_role ur on r.id = ur.roleId
         WHERE ur.userId = #{id}
     </select>
     <select id="findMenuInfoByRoleId" resultType="com.xieweifeng.entity.MenuInfo">
         SELECT * from base_menu m
-                          LEFT JOIN base_role_menu rm on m.id = rm.menuId
+          LEFT JOIN base_role_menu rm on m.id = rm.menuId
         WHERE m.parentId = #{prentid} and rm.roleId =#{roleID}
 
     </select>

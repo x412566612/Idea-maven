@@ -17,5 +17,6 @@ public class Condition {
     private String sexs;
     private Integer pageNum;
     private Integer pageSize;
+    private Integer power;
 
 }

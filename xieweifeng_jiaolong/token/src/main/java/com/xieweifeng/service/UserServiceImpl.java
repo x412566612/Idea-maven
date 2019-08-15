@@ -46,7 +46,7 @@ public class UserServiceImpl implements UserService {
         for (MenuInfo m : menuInfoByRoleId) {
             this.findMenu(m.getId(), map, roleId);
             if(m.getLeval()!=1&&m.getUrl()!=null){
-                map.put(m.getUrl(),"");
+                map.put(m.getUrl(),"true");
             }
         }
 

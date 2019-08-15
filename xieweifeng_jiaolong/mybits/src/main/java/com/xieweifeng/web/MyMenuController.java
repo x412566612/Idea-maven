@@ -7,6 +7,7 @@ import com.xieweifeng.entity.MenuInfo;
 import com.xieweifeng.entity.ResponseResult;
 import com.xieweifeng.service.MenuService;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiModelProperty;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,50 +32,38 @@ public class MyMenuController {
     private RedisTemplate redisTemplate;
 
 
-    @RequestMapping("findMenuAll")
-    @ApiOperation(value = "获取所有的菜单,并将获取到的菜单,存入redis缓存")
-
-    public ResponseResult findMenuAll(){
+    @RequestMapping("findMenuInfoByParentIdAndRoleId")
+    @ApiOperation(value = "分层查询指定角色的菜单")
+    @ApiImplicitParam(
+            name = "map",
+            value = "将传入的参数封装成一个map集合,里面必须携带一个名称为id的Long类型参数"
+    )
+    public ResponseResult findMenuInfoByParentIdAndRoleId(@RequestBody Map map){
+        Long id = Long.valueOf(map.get("id").toString());
         ResponseResult responseResult = new ResponseResult();
-        //获取redis缓存中的参数
-        List<MenuInfo> findMenuAll = redisTemplate.opsForList().range("findMenuAll", 0, -1);
-        //redis缓存不为空,则返回缓存中的参数
-        if(findMenuAll!=null&&findMenuAll.size()>0){
-            responseResult.setResult(findMenuAll);
-        }else {
-            //缓存为空,则重新查询,并存入缓存
-            List<MenuInfo> all = menuService.findAll(0L);
-            redisTemplate.opsForList().leftPushAll("findMenuAll",all);
-            redisTemplate.expire("findMenuAll",60, TimeUnit.SECONDS);
-            responseResult.setResult(all);
-        }
+        List<MenuInfo> all = menuService.findMenuInfoByParentIdAndRoleId(0L,id);
+        responseResult.setResult(all);
         responseResult.setCode(200);
         responseResult.setSuccess("查询成功");
         return responseResult;
     }
 
-    @RequestMapping("findMenuBySan")
-    @ApiOperation(value = "获取没有最后一级的菜单,并将获取到的菜单,存入redis缓存")
-    public ResponseResult findMenuBySan(){
+    @RequestMapping("findMenuAll")
+    @ApiOperation(value = "获取所有的菜单")
+    public ResponseResult findMenuAll(){
         ResponseResult responseResult = new ResponseResult();
-        //获取redis缓存中的参数
-       /* List<MenuInfo> findMenuAll = redisTemplate.opsForList().range("findMenuBySan", 0, -1);
-        //redis缓存不为空,则返回缓存中的参数
-        if(findMenuAll!=null&&findMenuAll.size()>0){
-            responseResult.setResult(findMenuAll);
-        }else {*/
-            //缓存为空,则重新查询,并存入缓存
-            List<MenuInfo> all = menuService.findMenuBySan(0L);
-          /*  redisTemplate.opsForList().leftPushAll("findMenuBySan",all);
-            redisTemplate.expire("findMenuBySan",60, TimeUnit.SECONDS);*/
-            responseResult.setResult(all);
-        /*}*/
+        List<MenuInfo> all = menuService.findAll(0L);
+        responseResult.setResult(all);
         responseResult.setCode(200);
         responseResult.setSuccess("查询成功");
         return responseResult;
     }
     @RequestMapping("findMenuByParentId")
     @ApiOperation(value = "获取菜单的4级子菜单")
+    @ApiImplicitParam(
+            name = "parentIds",
+            value = "传入一组Long集合"
+    )
     public ResponseResult findMenuByParentId(@RequestBody Long[] parentIds){
         ResponseResult responseResult = new ResponseResult();
         List<MenuInfo> all = menuService.findMenuByParentId(parentIds);
@@ -85,6 +74,10 @@ public class MyMenuController {
     }
     @RequestMapping("findRoleByRoleid")
     @ApiOperation(value = "获取指定角色的所有菜单ID")
+    @ApiImplicitParam(
+            name = "map",
+            value = "将传入的参数封装成一个map集合,里面必须携带一个名称为id的Long类型参数"
+    )
     public ResponseResult findRoleByRoleid(@RequestBody Map map){
         Long id = Long.valueOf(map.get("id").toString());
         ResponseResult responseResult = new ResponseResult();
@@ -101,6 +94,10 @@ public class MyMenuController {
 
     @RequestMapping("insertMenu")
     @ApiOperation(value = "添加菜单")
+    @ApiImplicitParam(
+            name = "menuInfo",
+            value = "传入一个菜单对象,用于做添加操作"
+    )
     public ResponseResult insertMenu(@RequestBody MenuInfo menuInfo){
         ResponseResult responseResult = new ResponseResult();
         Integer integer = menuService.insertMenu(menuInfo);
@@ -110,6 +107,10 @@ public class MyMenuController {
     }
     @RequestMapping("updateMenu")
     @ApiOperation(value = "修改菜单")
+    @ApiImplicitParam(
+            name = "menuInfo",
+            value = "传入一个菜单对象,用于做修改操作"
+    )
     public ResponseResult updateMenu(@RequestBody MenuInfo menuInfo){
         ResponseResult responseResult = new ResponseResult();
         Integer integer = menuService.updateMenu(menuInfo);
@@ -119,6 +120,10 @@ public class MyMenuController {
     }
     @RequestMapping("deleteMenu")
     @ApiOperation(value = "删除菜单")
+    @ApiImplicitParam(
+            name = "map",
+            value = "将传入的参数封装成一个map集合,里面必须携带一个名称为id的Long类型参数"
+    )
     public ResponseResult deleteMenu(@RequestBody Map map){
         Long id = Long.valueOf(map.get("id").toString());
         ResponseResult responseResult = new ResponseResult();

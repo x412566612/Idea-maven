@@ -15,14 +15,16 @@ import java.util.List;
 
 @Mapper
 public interface UserInfoDao {
-    public List<UserInfo> findByNameAndDateAndSex(@Param("userName") String userName,@Param("str") Date str,@Param("end")Date end,@Param("sex")String sex);
+    public List<UserInfo> findByNameAndDateAndSex(@Param("userName") String userName, @Param("str") Date str, @Param("end") Date end, @Param("sex") String sex,@Param("power") Integer power);
 
+
+    public List<UserInfo> findByUserInfoAll();
     public UserInfo findUserInfoById(@Param("id") Long id);
     public UserInfo findUserInfoByLoginName(@Param("loginName") String loginName);
     public List<UserInfo> findUserByRoleId(@Param("id") Long id);
     public Integer insertUserInfo(UserInfo userInfo);
     public Integer updateUserInfo(UserInfo userInfo);
-    public Integer deleteUserInfo(@Param("ids") Long[] ids);
+    public Integer deleteUserInfo(@Param("id")Long id,@Param("status")Integer status);
     public Integer insertUserAndRoles(@Param("userId")Long userId,@Param("roleId")Long roleIds);
     public Integer deleteUserAndRoles(@Param("userId")Long userId);
 }

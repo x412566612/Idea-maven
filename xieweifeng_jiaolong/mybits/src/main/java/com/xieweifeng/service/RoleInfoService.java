@@ -11,12 +11,15 @@ import java.util.List;
 
 public interface RoleInfoService {
     public List<RoleInfo> findByRoleAll( String query);
-
+    public List<RoleInfo> findRoleByParentId(Long parentId,List<RoleInfo> infoList);
+    public RoleInfo findRoleById(Long id);
     public PageInfo<RoleInfo> findRoleByLikeNameAll(String roleName ,Integer pageNum,Integer pageSize);
     public Integer insertRole(RoleInfo roleInfo);
     public Integer updateRole(RoleInfo roleInfo);
 
-    public Integer insertRoleAndMenu( Long roleId,Integer[] menuIds);
+    public Integer insertRoleAndMenu( Long roleId,Long[] menuIds);
 
     public Integer deleteRole( Long roleId);
+
+    public Integer clearRoleCorrelationAll(Long id);
 }
