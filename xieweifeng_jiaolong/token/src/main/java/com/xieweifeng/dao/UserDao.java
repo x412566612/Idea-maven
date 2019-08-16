@@ -18,4 +18,8 @@ public interface UserDao  {
     public List<MenuInfo> findMenuInfoByRoleId(@Param("prentid") Long prentid,@Param("roleID")  Long roleID);
 
     public  UserInfo findUserTel(@Param("tel")String tel);
+
+    UserInfo findUserByLoginNameAndEmail(@Param("loginName")String loginName, @Param("email")String email);
+
+    Integer updateUserPassword(@Param("id")Long id,@Param("password") String password);
 }

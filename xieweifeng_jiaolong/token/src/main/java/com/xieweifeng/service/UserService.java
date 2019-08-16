@@ -15,4 +15,9 @@ public interface UserService {
 
     public UserInfo findUserTel(String tel) throws LoginException;
     public String getAuthcode(String tel);
+    public String getRandomString();
+
+    UserInfo findUserByLoginNameAndEmail(String loginName, String email);
+
+    Integer updateUserPassword(Long id, String password);
 }

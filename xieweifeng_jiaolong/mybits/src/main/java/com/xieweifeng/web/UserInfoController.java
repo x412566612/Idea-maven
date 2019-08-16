@@ -199,7 +199,8 @@ public class UserInfoController {
             value = "将传入的参数封装成一个map集合,里面必须携带一个名称为id的Long参数"
     )
     public ResponseResult findUserByRoleId(@RequestBody Map map){
-        Long id = Long.valueOf(map.get("id").toString());
+        String id1 = map.get("id").toString();
+        Long id = Long.valueOf(id1);
         ResponseResult responseResult = new ResponseResult();
         List<UserInfo> userByRoleId = userInfoService.findUserByRoleId(id);
         if(userByRoleId.size()==0){

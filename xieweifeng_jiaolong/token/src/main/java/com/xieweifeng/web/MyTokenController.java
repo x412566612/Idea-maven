@@ -19,6 +19,8 @@ import com.xieweifeng.utils.UID;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiModelProperty;
 import io.swagger.annotations.ApiOperation;
+import org.apache.commons.mail.EmailException;
+import org.apache.commons.mail.HtmlEmail;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -45,6 +47,61 @@ public class MyTokenController {
     @Autowired
     private UserService userService;
 
+
+    @RequestMapping("/getEmail")
+    @ApiOperation(value = "向指定邮箱发送一条验证码")
+    public  ResponseResult getEmail(@RequestBody Map map) throws EmailException {
+        ResponseResult responseResult = ResponseResult.getResponseResult();
+        String myemail = map.get("email").toString();
+        HtmlEmail email=new HtmlEmail();
+        try {
+            email.setHostName("smtp.163.com");//邮箱的SMTP服务器，一般123邮箱的是smtp.123.com,qq邮箱为smtp.qq.com
+            email.setCharset("utf-8");//设置发送的字符类型
+            email.setFrom("x18580523803@163.com","谢先生");//发送人的邮箱为自己的，用户名可以随便填
+            email.setAuthentication("x18580523803@163.com", "xieweifeng1990");
+            //此处填写邮箱地址和客户端授权码
+            email.addTo(myemail);//设置收件人
+            email.setSubject("重置登陆账户用户密码");//设置发送主题
+            String randomCode = userService.getRandomString();
+            email.setMsg("验证码:"+randomCode);//设置发送内容
+            email.send();//进行发送
+            stringRedisTemplate.opsForValue().set(myemail,randomCode);
+            stringRedisTemplate.expire(myemail,600,TimeUnit.SECONDS);
+            responseResult.setCode(200);
+            responseResult.setSuccess("验证码发送成功");
+            responseResult.setResult(randomCode);
+        }catch (Exception e){
+            responseResult.setCode(500);
+            responseResult.setError("邮箱不存在");
+        }finally {
+            return responseResult;
+        }
+    }
+
+    @RequestMapping("/resetUserPassword")
+    @ApiOperation(value = "根据邮箱,重置指定账户密码")
+    public ResponseResult resetUserPassword(@RequestBody Map map){
+        ResponseResult responseResult = ResponseResult.getResponseResult();
+        String email = map.get("email").toString();
+        String loginName = map.get("loginName").toString();
+        String code = map.get("code").toString();
+        String password = MD5.encryptPassword(map.get("password").toString(), "lcg");
+        if(stringRedisTemplate.opsForValue().get(email).equals(code)){
+          UserInfo userInfo = userService.findUserByLoginNameAndEmail(loginName,email);
+          if(userInfo!=null){
+             Integer integer = userService.updateUserPassword(userInfo.getId(),password);
+              responseResult.setCode(200);
+              responseResult.setSuccess("密码重置成功,请重新登录");
+          }else {
+              responseResult.setCode(500);
+              responseResult.setSuccess("绑定邮箱有误,请重新输入");
+          }
+        }else {
+            responseResult.setCode(500);
+            responseResult.setSuccess("验证码有误,请重新输入");
+        }
+        return responseResult;
+    }
     @RequestMapping("/getAuthcode")
     @ApiOperation(value = "获取发送一条手机验证码")
     public ResponseResult getAuthcode(@RequestBody Map map, HttpServletResponse response){
@@ -189,6 +246,7 @@ public class MyTokenController {
         String s2 = JWTUtils.generateToken(s1);
         responseResult.setCode(200);
         responseResult.setToken(s2);
+        //判断是否免登陆
         stringRedisTemplate.opsForValue().set("USER"+userInfo.getId(),s2);
         if(checked){
             stringRedisTemplate.expire("USER"+userInfo.getId(),7,TimeUnit.DAYS);
@@ -202,21 +260,33 @@ public class MyTokenController {
         }else {
             stringRedisTemplate.expire("USERDATAAUTH"+userInfo.getId(),600,TimeUnit.SECONDS);
         }
-        SimpleDateFormat simpleDateFormat1 = new SimpleDateFormat("yyyy-MM");
-        SimpleDateFormat simpleDateFormat2 = new SimpleDateFormat("yyyy-MM-dd");
-        String ym = simpleDateFormat1.format(new Date());
-        String ymd = simpleDateFormat2.format(new Date());
-        if(stringRedisTemplate.opsForHash().hasKey(ym,ymd)){
-            stringRedisTemplate.opsForHash().increment(ym,ymd,1);
-        }else {
-            stringRedisTemplate.opsForHash().put(ym,ymd,"1");
-        }
+        //是否免登陆结束
 
-        Object[] values =  stringRedisTemplate.opsForHash().values(ym).toArray();
-        Object[] keys =  stringRedisTemplate.opsForHash().keys(ym).toArray();
-        userInfo.setLoginKeys(keys);
-        userInfo.setLoginValues(values);
-        userInfo.setLoginCount(stringRedisTemplate.opsForHash().get(ym,ymd).toString());
+        //开始存值
+        SimpleDateFormat simpleDateFormat1 = new SimpleDateFormat("yyyy-MM-dd");
+        String ymd = simpleDateFormat1.format(new Date());
+
+        if(!stringRedisTemplate.hasKey("loginThirtyDays")){
+            stringRedisTemplate.opsForList().rightPush("loginThirtyDays",ymd);
+        }
+        Long size = stringRedisTemplate.opsForList().size("loginThirtyDays");
+        String s = stringRedisTemplate.opsForList().index("loginThirtyDays",size-1);
+        if(!s.equals(ymd)&&size==30){
+            stringRedisTemplate.opsForList().leftPop("loginThirtyDays");
+            stringRedisTemplate.opsForList().rightPush("loginThirtyDays",ymd);
+        }
+        stringRedisTemplate.opsForSet().add(ymd,userInfo.getId().toString());
+        //存值结束
+
+        //开始取值
+        List<String> values = new ArrayList<>();
+        List<String> keys = stringRedisTemplate.opsForList().range("loginThirtyDays",0,-1);
+        keys.forEach(k->{
+            values.add(stringRedisTemplate.opsForSet().size(k).toString());
+        });
+        userInfo.setLoginKeys(keys.toArray());
+        userInfo.setLoginValues(values.toArray());
+        //取值结束
         responseResult.setResult(userInfo);
         return responseResult;
     }

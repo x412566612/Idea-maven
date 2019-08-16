@@ -11,6 +11,7 @@ import com.xieweifeng.utils.TwitterIdWorker;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -22,7 +23,7 @@ public class RoleInfoServiceImpl implements RoleInfoService {
     private RoleInfoDao roleInfoDao;
 
     @Resource
-    private RedisTemplate redisTemplate;
+    private StringRedisTemplate stringRedisTemplate;
     @ApiOperation("根据角色名称,模糊查询角色信息")
     @Override
     public List<RoleInfo> findByRoleAll( String query) {
@@ -77,11 +78,11 @@ public class RoleInfoServiceImpl implements RoleInfoService {
         roleInfo.setUpdateTime(new Date());
         roleInfoDao.updateRole(roleInfo);
         roleInfoDao.deleteRoleAndMenu(roleInfo.getId());
-        if(redisTemplate.hasKey("USER" + id)){
-            redisTemplate.delete("USER" + id);
+        if(stringRedisTemplate.hasKey("USER" + id)){
+            stringRedisTemplate.delete("USER" + id);
         }
-        if(redisTemplate.hasKey("USERDATAAUTH" + id)){
-            redisTemplate.delete("USERDATAAUTH" + id);
+        if(stringRedisTemplate.hasKey("USERDATAAUTH" + id)){
+            stringRedisTemplate.delete("USERDATAAUTH" + id);
         }
         Integer integer = roleInfoDao.insertRoleAndMenu(roleInfo.getId(), roleInfo.getMenuIds());
         return integer;
@@ -99,11 +100,11 @@ public class RoleInfoServiceImpl implements RoleInfoService {
     public Integer deleteRole(Long roleId) {
         roleInfoDao.deleteRoleAndMenu(roleId);
         Integer integer = roleInfoDao.deleteRole(roleId);
-        if(redisTemplate.hasKey("USER" + roleId)){
-            redisTemplate.delete("USER" + roleId);
+        if(stringRedisTemplate.hasKey("USER" + roleId)){
+            stringRedisTemplate.delete("USER" + roleId);
         }
-        if(redisTemplate.hasKey("USERDATAAUTH" + roleId)){
-            redisTemplate.delete("USERDATAAUTH" + roleId);
+        if(stringRedisTemplate.hasKey("USERDATAAUTH" + roleId)){
+            stringRedisTemplate.delete("USERDATAAUTH" + roleId);
         }
         return integer;
     }

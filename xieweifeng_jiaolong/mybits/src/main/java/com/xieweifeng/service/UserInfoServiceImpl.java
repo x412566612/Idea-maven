@@ -76,6 +76,8 @@ public class UserInfoServiceImpl implements UserInfoService {
         //将加密后的密码存入用户对象
         userInfo.setPassword(lcg);
         userInfo.setId(twitterIdWorker.nextId());
+        Integer a = userInfo.getSexs()=="男"?1:0;
+        userInfo.setSex(a);
         //设置创建时间
         userInfo.setCreateTime(new Date());
         userInfo.setUpdateTime(new Date());

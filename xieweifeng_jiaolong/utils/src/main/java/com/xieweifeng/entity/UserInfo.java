@@ -38,6 +38,8 @@ public class UserInfo  extends BaseAuditable implements Serializable {
     @ApiModelProperty(value = "角色名称")
     private String roleName;
 
+    @ApiModelProperty(value = "绑定邮箱")
+    private String email;
     //当月登录次数
     private Object[] loginKeys;
 

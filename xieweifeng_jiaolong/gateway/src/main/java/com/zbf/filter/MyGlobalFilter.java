@@ -10,7 +10,7 @@ import io.swagger.annotations.ApiModelProperty;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
@@ -37,7 +37,7 @@ public class MyGlobalFilter implements GlobalFilter {
     private String loginpage;
 
     @Resource
-    private RedisTemplate redisTemplate;
+    private StringRedisTemplate stringRedisTemplate;
 
 
     @Override
@@ -69,7 +69,7 @@ public class MyGlobalFilter implements GlobalFilter {
             }
             //获取redis缓存内,当前用户的访问权限
             //将获取到的权限与请求进行对比,判断是否有权限访问指定服务
-            Boolean hasKey = redisTemplate.opsForHash().hasKey("USERDATAAUTH" + jsonObject.get("id"), uri);
+            Boolean hasKey = stringRedisTemplate.opsForHash().hasKey("USERDATAAUTH" + jsonObject.get("id"), uri);
             if(hasKey){
                 return chain.filter(exchange);
             }else {

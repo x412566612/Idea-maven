@@ -47,4 +47,12 @@
         WHERE m.parentId = #{prentid} and rm.roleId =#{roleID}
 
     </select>
+
+    <select id="findUserByLoginNameAndEmail" resultType="com.xieweifeng.entity.UserInfo">
+        select * from base_user where email = #{email} and loginName = #{loginName}
+    </select>
+
+    <update id="updateUserPassword">
+        update base_user set password = #{password} where id = #{id}
+    </update>
 </mapper>

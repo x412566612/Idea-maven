@@ -65,12 +65,13 @@
     </select>
 
     <select id="findUserInfoByLoginName" resultType="com.xieweifeng.entity.UserInfo">
-        select * from base_user where loginName = #{loginName}  ORDER BY u.id desc
+        select * from base_user where loginName = #{loginName}
     </select>
 
 
     <insert id="insertUserInfo" parameterType="com.xieweifeng.entity.UserInfo">
-        INSERT base_user(userName,loginName,password,sex,tel,createTime,portrait,parentId) VALUES(#{userName},#{loginName},#{password},#{sex},#{tel},#{createTime},#{portrait},#{parentId});
+        INSERT base_user(id,userName,loginName,password,sex,tel,createTime,portrait)
+        VALUES(#{id},#{userName},#{loginName},#{password},#{sex},#{tel},#{createTime},#{portrait})
     </insert>
 
     <update id="updateUserInfo"  parameterType="com.xieweifeng.entity.UserInfo">

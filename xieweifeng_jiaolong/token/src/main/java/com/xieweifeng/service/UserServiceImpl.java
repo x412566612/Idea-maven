@@ -119,4 +119,16 @@ public class UserServiceImpl implements UserService {
         }
         return result;
     }
+
+    @Override
+    public UserInfo findUserByLoginNameAndEmail(String loginName, String email) {
+        UserInfo userInfo = userDao.findUserByLoginNameAndEmail(loginName,email);
+        return userInfo;
+    }
+
+    @Override
+    public Integer updateUserPassword(Long id, String password) {
+        Integer integer= userDao.updateUserPassword(id,password);
+        return integer;
+    }
 }
